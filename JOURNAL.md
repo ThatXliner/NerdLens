@@ -31,3 +31,4 @@ This is the dev log journal so this project can be submitted to Hack Club's High
 - How come Build works but Build and Run doesn't? And also the whole "your project has no ID" is bugging me
 - Fixed bad gitignore
 - Decided to go with custom TCP-based video streaming protocol (as it would work best with iproxy)
+- Got a TCP feed working (just displaying text)

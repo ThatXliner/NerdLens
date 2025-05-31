@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class ReceiveVideo : MonoBehaviour
 {
@@ -13,7 +14,9 @@ public class ReceiveVideo : MonoBehaviour
     private Thread listenerThread;
     private volatile bool isRunning = false;
     public int port = 12345;
-    public TextMeshPro textDisplay;
+    public RawImage displayTarget; // assign this in the Inspector
+    private Texture2D frameTexture = null;
+
 
     void Start()
     {
@@ -38,7 +41,7 @@ public class ReceiveVideo : MonoBehaviour
                     Thread.Sleep(100); // prevent tight loop
                     continue;
                 }
-
+                Debug.Log("[TCP] Client connected, waiting for data...");
                 TcpClient client = listener.AcceptTcpClient();
                 ThreadPool.QueueUserWorkItem(_ => HandleClient(client));
             }
@@ -58,25 +61,38 @@ public class ReceiveVideo : MonoBehaviour
         try
         {
             using (NetworkStream stream = client.GetStream())
-            using (StreamReader reader = new StreamReader(stream, Encoding.UTF8))
-            using (StreamWriter writer = new StreamWriter(stream, Encoding.UTF8) { AutoFlush = true })
+            using (BinaryReader reader = new BinaryReader(stream))
             {
                 while (true)
                 {
-                    string name = reader.ReadLine();
-                    textDisplay.text = name; // Update the TextMeshPro component
-                    if (name.Equals("CLOSE CONNECTION"))
-                    {
-                        Debug.Log("[TCP] Client requested to close connection.");
-                        break;  // could also use return here
-                    }
-                    if (string.IsNullOrEmpty(name)) return;
-
-                    string response = $"Hello from iPhone, {name}\n";
-                    writer.WriteLine(response);
-                    writer.Flush();
+                    int frameLength = IPAddress.NetworkToHostOrder(reader.ReadInt32());
+                    if (frameLength <= 0) break;
+                    byte[] jpegBytes = reader.ReadBytes(frameLength);
+                    if (jpegBytes.Length < frameLength) break;
+                    Debug.Log($"[TCP] Received frame of length {jpegBytes.Length}");
+                    UpdateFrame(jpegBytes);
                 }
+                Debug.Log("[TCP] Client disconnected or sent invalid data.");
             }
+            // using (StreamReader reader = new StreamReader(stream, Encoding.UTF8))
+            // using (StreamWriter writer = new StreamWriter(stream, Encoding.UTF8) { AutoFlush = true })
+            // {
+            //     while (true)
+            //     {
+            //         string name = reader.ReadLine();
+            //         textDisplay.text = name; // Update the TextMeshPro component
+            //         if (name.Equals("CLOSE CONNECTION"))
+            //         {
+            //             Debug.Log("[TCP] Client requested to close connection.");
+            //             break;  // could also use return here
+            //         }
+            //         if (string.IsNullOrEmpty(name)) return;
+
+            //         string response = $"Hello from iPhone, {name}\n";
+            //         writer.WriteLine(response);
+            //         writer.Flush();
+            //     }
+            // }
         }
         catch (Exception e)
         {
@@ -87,7 +103,19 @@ public class ReceiveVideo : MonoBehaviour
             client.Close();
         }
     }
+    void UpdateFrame(byte[] jpegBytes)
+    {
+        // Run texture update on the main thread
+        UnityMainThreadDispatcher.Enqueue(() =>
+        {
+            Debug.Log($"[TCP] Rendering {jpegBytes.Length} bytes");
+            if (frameTexture == null)
+                frameTexture = new Texture2D(2, 2, TextureFormat.RGB24, false);
 
+            frameTexture.LoadImage(jpegBytes);
+            displayTarget.texture = frameTexture;
+        });
+    }
     void OnApplicationQuit()
     {
         isRunning = false;

@@ -1,22 +1,94 @@
+using System;
+using System.IO;
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
+using System.Threading;
+using TMPro;
 using UnityEngine;
-using Unity.WebRTC;
-public class RecieveVIdeo : MonoBehaviour
+
+public class ReceiveVideo : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    private TcpListener listener;
+    private Thread listenerThread;
+    private volatile bool isRunning = false;
+    public int port = 12345;
+    public TextMeshPro label;
     void Start()
     {
-        // Get a valid RendertextureFormat
-        var gfxType = SystemInfo.graphicsDeviceType;
-        var format = WebRTC.GetSupportedRenderTextureFormat(gfxType);
-
-        // // Create a track from the RenderTexture
-        // var rt = new RenderTexture(width, height, 0, format);
-        // var track = new VideoStreamTrack("video", renderTexture);
+        isRunning = true;
+        listenerThread = new Thread(ServerLoop);
+        listenerThread.IsBackground = true;
+        listenerThread.Start();
     }
 
-    // Update is called once per frame
-    void Update()
+    void ServerLoop()
     {
+        try
+        {
+            listener = new TcpListener(IPAddress.Any, port);
+            listener.Start();
+            Debug.Log($"[TCP] Server listening on port {port}");
 
+            while (isRunning)
+            {
+                if (!listener.Pending())
+                {
+                    Thread.Sleep(100); // prevent tight loop
+                    continue;
+                }
+
+                TcpClient client = listener.AcceptTcpClient();
+                ThreadPool.QueueUserWorkItem(_ => HandleClient(client));
+            }
+        }
+        catch (SocketException se)
+        {
+            Debug.LogError($"[TCP] Socket exception: {se}");
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"[TCP] Server exception: {e}");
+        }
+    }
+
+    void HandleClient(TcpClient client)
+    {
+        try
+        {
+            using (NetworkStream stream = client.GetStream())
+            using (StreamReader reader = new StreamReader(stream, Encoding.UTF8))
+            using (StreamWriter writer = new StreamWriter(stream, Encoding.UTF8) { AutoFlush = true })
+            {
+                // while (true)
+                // {
+                string name = reader.ReadLine();
+                label.text = name;
+                if (string.IsNullOrEmpty(name) || name == "CLOSE CONNECTION") return;
+
+                string response = $"Hello from iPhone, {name}\n";
+                writer.WriteLine(response);
+                writer.Flush();
+                // }
+
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"[TCP] Client handling error: {e}");
+        }
+        finally
+        {
+            client.Close();
+        }
+
+    }
+
+    void OnApplicationQuit()
+    {
+        isRunning = false;
+        listener?.Stop();
+        listenerThread?.Join();
+        Debug.Log("[TCP] Server stopped.");
     }
 }

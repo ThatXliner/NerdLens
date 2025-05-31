@@ -676,7 +676,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   port: 12345
-  label: {fileID: 1824122396}
+  textDisplay: {fileID: 1824122396}
 --- !u!1 &1824122395
 GameObject:
   m_ObjectHideFlags: 0

@@ -13,7 +13,8 @@ public class ReceiveVideo : MonoBehaviour
     private Thread listenerThread;
     private volatile bool isRunning = false;
     public int port = 12345;
-    public TextMeshPro label;
+    public TextMeshPro textDisplay;
+
     void Start()
     {
         isRunning = true;
@@ -60,17 +61,21 @@ public class ReceiveVideo : MonoBehaviour
             using (StreamReader reader = new StreamReader(stream, Encoding.UTF8))
             using (StreamWriter writer = new StreamWriter(stream, Encoding.UTF8) { AutoFlush = true })
             {
-                // while (true)
-                // {
-                string name = reader.ReadLine();
-                label.text = name;
-                if (string.IsNullOrEmpty(name) || name == "CLOSE CONNECTION") return;
+                while (true)
+                {
+                    string name = reader.ReadLine();
+                    textDisplay.text = name; // Update the TextMeshPro component
+                    if (name.Equals("CLOSE CONNECTION"))
+                    {
+                        Debug.Log("[TCP] Client requested to close connection.");
+                        break;  // could also use return here
+                    }
+                    if (string.IsNullOrEmpty(name)) return;
 
-                string response = $"Hello from iPhone, {name}\n";
-                writer.WriteLine(response);
-                writer.Flush();
-                // }
-
+                    string response = $"Hello from iPhone, {name}\n";
+                    writer.WriteLine(response);
+                    writer.Flush();
+                }
             }
         }
         catch (Exception e)
@@ -81,7 +86,6 @@ public class ReceiveVideo : MonoBehaviour
         {
             client.Close();
         }
-
     }
 
     void OnApplicationQuit()

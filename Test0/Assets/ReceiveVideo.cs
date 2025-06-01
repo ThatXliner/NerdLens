@@ -75,25 +75,6 @@ public class ReceiveVideo : MonoBehaviour
                 }
                 Debug.Log("[TCP] Client disconnected or sent invalid data.");
             }
-            // using (StreamReader reader = new StreamReader(stream, Encoding.UTF8))
-            // using (StreamWriter writer = new StreamWriter(stream, Encoding.UTF8) { AutoFlush = true })
-            // {
-            //     while (true)
-            //     {
-            //         string name = reader.ReadLine();
-            //         textDisplay.text = name; // Update the TextMeshPro component
-            //         if (name.Equals("CLOSE CONNECTION"))
-            //         {
-            //             Debug.Log("[TCP] Client requested to close connection.");
-            //             break;  // could also use return here
-            //         }
-            //         if (string.IsNullOrEmpty(name)) return;
-
-            //         string response = $"Hello from iPhone, {name}\n";
-            //         writer.WriteLine(response);
-            //         writer.Flush();
-            //     }
-            // }
         }
         catch (Exception e)
         {

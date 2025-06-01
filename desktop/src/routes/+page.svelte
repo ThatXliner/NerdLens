@@ -4,11 +4,11 @@
 
     let isRecording = false;
     let isConnected = false;
-    let mediaStream = null;
-    let canvas = null;
-    let ctx = null;
-    let video = null;
-    let animationId = null;
+    let mediaStream: MediaStream;
+    let canvas: HTMLCanvasElement;
+    let ctx: CanvasRenderingContext2D;
+    let video: HTMLVideoElement;
+    let animationId: number;
     let status = "Ready to record";
     let frameCount = 0;
     let fps = 30;
@@ -16,9 +16,9 @@
     let lastFrameTime = 0;
 
     onMount(() => {
-        canvas = document.getElementById("canvas");
-        ctx = canvas.getContext("2d");
-        video = document.getElementById("video");
+        canvas = document.getElementById("canvas")!;
+        ctx = canvas.getContext("2d")!;
+        video = document.getElementById("video")!;
     });
 
     onDestroy(() => {
@@ -44,7 +44,7 @@
         try {
             const result = await invoke("disconnect_from_server");
             isConnected = false;
-            status = result;
+            status = result as string;
         } catch (error) {
             status = `Disconnect failed: ${error}`;
         }
@@ -104,6 +104,7 @@
                             const base64 = btoa(
                                 String.fromCharCode.apply(null, uint8Array),
                             );
+                            console.log(uint8Array, base64);
 
                             await invoke("send_frame", { frameData: base64 });
                             frameCount++;

@@ -64,16 +64,10 @@ public class ReceiveVideo : MonoBehaviour
             using (NetworkStream stream = client.GetStream())
             using (BinaryReader reader = new BinaryReader(stream))
             {
-                while (true)
-                {
-                    int frameLength = IPAddress.NetworkToHostOrder(reader.ReadInt32());
-                    if (frameLength <= 0) break;
-                    byte[] jpegBytes = reader.ReadBytes(frameLength);
-                    if (jpegBytes.Length < frameLength) break;
-                    Debug.Log($"[TCP] Received frame of length {jpegBytes.Length}");
-                    UpdateFrame(jpegBytes);
-                }
-                Debug.Log("[TCP] Client disconnected or sent invalid data.");
+                int frameLength = IPAddress.NetworkToHostOrder(reader.ReadInt32());
+                byte[] jpegBytes = reader.ReadBytes(frameLength);
+                Debug.Log($"[TCP] Received frame of length {jpegBytes.Length}");
+                UpdateFrame(jpegBytes);
             }
             // using (StreamReader reader = new StreamReader(stream, Encoding.UTF8))
             // using (StreamWriter writer = new StreamWriter(stream, Encoding.UTF8) { AutoFlush = true })

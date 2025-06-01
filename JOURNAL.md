@@ -45,3 +45,6 @@ Things to do tomorrow:
 - more reliable video streaming (reconnection)
 - adjustable placement + distance from the camera
 - Make the 3d environment a little more lovely
+
+
+See this chat: https://claude.ai/share/0881de4e-a98e-4861-8927-b1ea07453463

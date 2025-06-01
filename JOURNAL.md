@@ -37,3 +37,11 @@ This is the dev log journal so this project can be submitted to Hack Club's High
 ## 2025-06-01
 
 - Added line of code to keep screen always on
+- Got a screen recording client prototype
+- Got video stream to work. The Unity app can now view the video stream of the host computer screen. That is to say, the proof-of-concept is done.
+
+
+Things to do tomorrow:
+- more reliable video streaming (reconnection)
+- adjustable placement + distance from the camera
+- Make the 3d environment a little more lovely

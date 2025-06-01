@@ -20,6 +20,7 @@ public class ReceiveVideo : MonoBehaviour
 
     void Start()
     {
+        Screen.sleepTimeout = SleepTimeout.NeverSleep;
         isRunning = true;
         listenerThread = new Thread(ServerLoop);
         listenerThread.IsBackground = true;

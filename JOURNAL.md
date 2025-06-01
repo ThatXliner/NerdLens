@@ -33,3 +33,7 @@ This is the dev log journal so this project can be submitted to Hack Club's High
 - Decided to go with custom TCP-based video streaming protocol (as it would work best with iproxy)
 - Got a TCP feed working (just displaying text)
 - got video stream to work... i just need to fine tune it... we're 80% done with the app
+
+## 2025-06-01
+
+- Added line of code to keep screen always on

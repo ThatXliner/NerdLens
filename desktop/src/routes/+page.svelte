@@ -1,156 +1,323 @@
 <script lang="ts">
-  import { invoke } from "@tauri-apps/api/core";
+    import { invoke } from "@tauri-apps/api/core";
+    import { onMount, onDestroy } from "svelte";
 
-  let name = $state("");
-  let greetMsg = $state("");
+    let isRecording = false;
+    let isConnected = false;
+    let mediaStream = null;
+    let canvas = null;
+    let ctx = null;
+    let video = null;
+    let animationId = null;
+    let status = "Ready to record";
+    let frameCount = 0;
+    let fps = 30;
+    let frameInterval = 1000 / fps;
+    let lastFrameTime = 0;
 
-  async function greet(event: Event) {
-    event.preventDefault();
-    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-    greetMsg = await invoke("greet", { name });
-  }
+    onMount(() => {
+        canvas = document.getElementById("canvas");
+        ctx = canvas.getContext("2d");
+        video = document.getElementById("video");
+    });
+
+    onDestroy(() => {
+        if (animationId) {
+            cancelAnimationFrame(animationId);
+        }
+        if (mediaStream) {
+            mediaStream.getTracks().forEach((track) => track.stop());
+        }
+    });
+
+    async function connectToServer() {
+        try {
+            const result = await invoke("connect_to_server");
+            isConnected = true;
+            status = result;
+        } catch (error) {
+            status = `Connection failed: ${error}`;
+        }
+    }
+
+    async function disconnectFromServer() {
+        try {
+            const result = await invoke("disconnect_from_server");
+            isConnected = false;
+            status = result;
+        } catch (error) {
+            status = `Disconnect failed: ${error}`;
+        }
+    }
+
+    async function startRecording() {
+        try {
+            mediaStream = await navigator.mediaDevices.getDisplayMedia({
+                video: {
+                    mediaSource: "screen",
+                    width: 1920,
+                    height: 1080,
+                    frameRate: fps,
+                },
+                audio: false,
+            });
+
+            video.srcObject = mediaStream;
+            video.play();
+
+            video.addEventListener("loadedmetadata", () => {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                isRecording = true;
+                frameCount = 0;
+                status = "Recording...";
+                captureFrame();
+            });
+        } catch (error) {
+            status = `Failed to start recording: ${error}`;
+        }
+    }
+
+    function stopRecording() {
+        isRecording = false;
+        if (animationId) {
+            cancelAnimationFrame(animationId);
+        }
+        if (mediaStream) {
+            mediaStream.getTracks().forEach((track) => track.stop());
+        }
+        status = `Recording stopped. ${frameCount} frames captured.`;
+    }
+
+    function captureFrame(timestamp = 0) {
+        if (!isRecording) return;
+
+        if (timestamp - lastFrameTime >= frameInterval) {
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            canvas.toBlob(
+                async (blob) => {
+                    if (blob && isConnected && isRecording) {
+                        try {
+                            const arrayBuffer = await blob.arrayBuffer();
+                            const uint8Array = new Uint8Array(arrayBuffer);
+                            const base64 = btoa(
+                                String.fromCharCode.apply(null, uint8Array),
+                            );
+
+                            await invoke("send_frame", { frameData: base64 });
+                            frameCount++;
+                            status = `Recording... ${frameCount} frames sent`;
+                        } catch (error) {
+                            status = `Failed to send frame: ${error}`;
+                        }
+                    }
+                },
+                "image/jpeg",
+                0.8,
+            );
+
+            lastFrameTime = timestamp;
+        }
+
+        if (isRecording) {
+            animationId = requestAnimationFrame(captureFrame);
+        }
+    }
 </script>
 
-<main class="container">
-  <h1>Welcome to Tauri + Svelte</h1>
+<main
+    class="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 text-white"
+>
+    <div class="container mx-auto px-6 py-8">
+        <div class="text-center mb-8">
+            <h1
+                class="text-4xl font-bold mb-2 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent"
+            >
+                Screen Recorder
+            </h1>
+            <p class="text-gray-300">
+                Capture and stream your screen to localhost:12345
+            </p>
+        </div>
 
-  <div class="row">
-    <a href="https://vitejs.dev" target="_blank">
-      <img src="/vite.svg" class="logo vite" alt="Vite Logo" />
-    </a>
-    <a href="https://tauri.app" target="_blank">
-      <img src="/tauri.svg" class="logo tauri" alt="Tauri Logo" />
-    </a>
-    <a href="https://kit.svelte.dev" target="_blank">
-      <img src="/svelte.svg" class="logo svelte-kit" alt="SvelteKit Logo" />
-    </a>
-  </div>
-  <p>Click on the Tauri, Vite, and SvelteKit logos to learn more.</p>
+        <div class="max-w-4xl mx-auto">
+            <!-- Status Bar -->
+            <div
+                class="bg-black/30 backdrop-blur-sm rounded-lg p-4 mb-6 border border-white/10"
+            >
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div
+                            class="w-3 h-3 rounded-full {isConnected
+                                ? 'bg-green-400'
+                                : 'bg-red-400'} animate-pulse"
+                        ></div>
+                        <span class="text-sm font-medium">
+                            {isConnected ? "Connected" : "Disconnected"}
+                        </span>
+                    </div>
+                    <div class="text-sm text-gray-300">
+                        Status: {status}
+                    </div>
+                </div>
+            </div>
 
-  <form class="row" onsubmit={greet}>
-    <input id="greet-input" placeholder="Enter a name..." bind:value={name} />
-    <button type="submit">Greet</button>
-  </form>
-  <p>{greetMsg}</p>
+            <!-- Control Panel -->
+            <div
+                class="bg-white/10 backdrop-blur-sm rounded-xl p-6 mb-6 border border-white/20"
+            >
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Connection Controls -->
+                    <div class="space-y-4">
+                        <h3 class="text-lg font-semibold mb-3">
+                            Server Connection
+                        </h3>
+                        <div class="flex space-x-3">
+                            <button
+                                on:click={connectToServer}
+                                disabled={isConnected}
+                                class="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg font-medium transition-colors"
+                            >
+                                Connect
+                            </button>
+                            <button
+                                on:click={disconnectFromServer}
+                                disabled={!isConnected}
+                                class="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg font-medium transition-colors"
+                            >
+                                Disconnect
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Recording Controls -->
+                    <div class="space-y-4">
+                        <h3 class="text-lg font-semibold mb-3">
+                            Screen Recording
+                        </h3>
+                        <div class="flex space-x-3">
+                            <button
+                                on:click={startRecording}
+                                disabled={isRecording || !isConnected}
+                                class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg font-medium transition-colors flex items-center justify-center space-x-2"
+                            >
+                                <svg
+                                    class="w-5 h-5"
+                                    fill="currentColor"
+                                    viewBox="0 0 20 20"
+                                >
+                                    <circle cx="10" cy="10" r="6" />
+                                </svg>
+                                <span>Start Recording</span>
+                            </button>
+                            <button
+                                on:click={stopRecording}
+                                disabled={!isRecording}
+                                class="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg font-medium transition-colors flex items-center justify-center space-x-2"
+                            >
+                                <svg
+                                    class="w-5 h-5"
+                                    fill="currentColor"
+                                    viewBox="0 0 20 20"
+                                >
+                                    <rect x="6" y="6" width="8" height="8" />
+                                </svg>
+                                <span>Stop Recording</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings -->
+                <div class="mt-6 pt-6 border-t border-white/20">
+                    <div class="flex items-center space-x-4">
+                        <label class="text-sm font-medium">FPS:</label>
+                        <input
+                            type="range"
+                            min="10"
+                            max="60"
+                            bind:value={fps}
+                            on:input={() => {
+                                frameInterval = 1000 / fps;
+                            }}
+                            disabled={isRecording}
+                            class="flex-1 max-w-xs"
+                        />
+                        <span class="text-sm w-8">{fps}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preview -->
+            <div
+                class="bg-black/30 backdrop-blur-sm rounded-xl p-6 border border-white/10"
+            >
+                <h3 class="text-lg font-semibold mb-4">Preview</h3>
+                <div class="relative bg-black/50 rounded-lg overflow-hidden">
+                    <video
+                        id="video"
+                        class="w-full h-auto max-h-96 object-contain"
+                        muted
+                        autoplay
+                        style="display: {isRecording ? 'block' : 'none'}"
+                    ></video>
+                    <canvas id="canvas" class="hidden"></canvas>
+                    {#if !isRecording}
+                        <div
+                            class="aspect-video flex items-center justify-center text-gray-400"
+                        >
+                            <div class="text-center">
+                                <svg
+                                    class="w-16 h-16 mx-auto mb-4 opacity-50"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                                    ></path>
+                                </svg>
+                                <p>No active recording</p>
+                                <p class="text-sm">
+                                    Start recording to see preview
+                                </p>
+                            </div>
+                        </div>
+                    {/if}
+                </div>
+            </div>
+
+            <!-- Statistics -->
+            {#if isRecording}
+                <div
+                    class="mt-6 bg-white/5 backdrop-blur-sm rounded-lg p-4 border border-white/10"
+                >
+                    <div class="grid grid-cols-3 gap-4 text-center">
+                        <div>
+                            <div class="text-2xl font-bold text-blue-400">
+                                {frameCount}
+                            </div>
+                            <div class="text-sm text-gray-400">Frames Sent</div>
+                        </div>
+                        <div>
+                            <div class="text-2xl font-bold text-green-400">
+                                {fps}
+                            </div>
+                            <div class="text-sm text-gray-400">Target FPS</div>
+                        </div>
+                        <div>
+                            <div class="text-2xl font-bold text-purple-400">
+                                {canvas?.width || 0}x{canvas?.height || 0}
+                            </div>
+                            <div class="text-sm text-gray-400">Resolution</div>
+                        </div>
+                    </div>
+                </div>
+            {/if}
+        </div>
+    </div>
 </main>
-
-<style>
-.logo.vite:hover {
-  filter: drop-shadow(0 0 2em #747bff);
-}
-
-.logo.svelte-kit:hover {
-  filter: drop-shadow(0 0 2em #ff3e00);
-}
-
-:root {
-  font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
-  font-size: 16px;
-  line-height: 24px;
-  font-weight: 400;
-
-  color: #0f0f0f;
-  background-color: #f6f6f6;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-text-size-adjust: 100%;
-}
-
-.container {
-  margin: 0;
-  padding-top: 10vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  text-align: center;
-}
-
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: 0.75s;
-}
-
-.logo.tauri:hover {
-  filter: drop-shadow(0 0 2em #24c8db);
-}
-
-.row {
-  display: flex;
-  justify-content: center;
-}
-
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-
-a:hover {
-  color: #535bf2;
-}
-
-h1 {
-  text-align: center;
-}
-
-input,
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  color: #0f0f0f;
-  background-color: #ffffff;
-  transition: border-color 0.25s;
-  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
-}
-
-button {
-  cursor: pointer;
-}
-
-button:hover {
-  border-color: #396cd8;
-}
-button:active {
-  border-color: #396cd8;
-  background-color: #e8e8e8;
-}
-
-input,
-button {
-  outline: none;
-}
-
-#greet-input {
-  margin-right: 5px;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    color: #f6f6f6;
-    background-color: #2f2f2f;
-  }
-
-  a:hover {
-    color: #24c8db;
-  }
-
-  input,
-  button {
-    color: #ffffff;
-    background-color: #0f0f0f98;
-  }
-  button:active {
-    background-color: #0f0f0f69;
-  }
-}
-
-</style>

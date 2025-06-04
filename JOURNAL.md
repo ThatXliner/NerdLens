@@ -61,3 +61,8 @@ TODO:
 - Error feedback to the Tauri client
 - Improve connection info on the client (Unity) side
 - Look into how to make the screen record more reliable (it sometimes stops screen recording when the window is minimized?? Or even covered by other apps' windows...)
+
+
+In the far future:
+
+- Branding + Logo + Packaging

@@ -52,3 +52,12 @@ See this chat: https://claude.ai/share/0881de4e-a98e-4861-8927-b1ea07453463
 ## 2025-06-03
 
 - Implement very spammy (but reliable) reconnection code
+
+TODO:
+
+- Implement adjustable placement + distance from the camera
+- Make the connection one button
+- Make the reconnection less spammy (time out between each send_frame)
+- Error feedback to the Tauri client
+- Improve connection info on the client (Unity) side
+- Look into how to make the screen record more reliable (it sometimes stops screen recording when the window is minimized?? Or even covered by other apps' windows...)

@@ -1,7 +1,6 @@
 use base64::{engine::general_purpose, Engine as _};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-use tauri::Manager;
 use tokio::io::AsyncWriteExt;
 use tokio::net::TcpStream;
 use tokio::sync::Mutex;
@@ -36,6 +35,15 @@ async fn disconnect_from_server(state: tauri::State<'_, AppState>) -> Result<Str
     Ok("Disconnected from server".to_string())
 }
 
+macro_rules! reconnect {
+    ($stream:ident) => {
+        let _ = $stream.shutdown().await;
+        *$stream = TcpStream::connect("127.0.0.1:12345")
+            .await
+            .map_err(|e| format!("Failed to connect to server: {}", e))?;
+    };
+}
+
 #[tauri::command]
 async fn send_frame(
     frame_data: String,
@@ -53,17 +61,25 @@ async fn send_frame(
         let frame_size = frame_bytes.len() as u32;
         let size_bytes = frame_size.to_be_bytes();
 
-        stream
-            .write_all(&size_bytes)
-            .await
-            .map_err(|e| format!("Failed to send frame size: {}", e))?;
+        for attempt in 0..5 {
+            if let Err(_) = stream.write_all(&size_bytes).await {
+                if attempt == 4 {
+                    return Err("Failed to send frame size".to_string());
+                }
+                reconnect!(stream);
+                continue;
+            }
 
-        // Send frame data
-        stream
-            .write_all(&frame_bytes)
-            .await
-            .map_err(|e| format!("Failed to send frame data: {}", e))?;
-
+            // Send frame data
+            if let Err(_) = stream.write_all(&frame_bytes).await {
+                if attempt == 4 {
+                    return Err("Failed to send frame data".to_string());
+                }
+                reconnect!(stream);
+                continue;
+            }
+            break;
+        }
         stream
             .flush()
             .await

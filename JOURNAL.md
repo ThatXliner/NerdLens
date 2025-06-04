@@ -48,3 +48,7 @@ Things to do tomorrow:
 
 
 See this chat: https://claude.ai/share/0881de4e-a98e-4861-8927-b1ea07453463
+
+## 2025-06-03
+
+- Implement very spammy (but reliable) reconnection code

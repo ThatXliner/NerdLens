@@ -14,9 +14,8 @@ public class ReceiveVideo : MonoBehaviour
     private Thread listenerThread;
     private volatile bool isRunning = false;
     public int port = 12345;
-    public RawImage displayTarget; // assign this in the Inspector
+    public RawImage displayTarget;
     private Texture2D frameTexture = null;
-
 
     void Start()
     {
@@ -37,23 +36,30 @@ public class ReceiveVideo : MonoBehaviour
 
             while (isRunning)
             {
-                if (!listener.Pending())
+                try
                 {
-                    Thread.Sleep(100); // prevent tight loop
-                    continue;
+                    // Block until a client connects
+                    TcpClient client = listener.AcceptTcpClient();
+                    Debug.Log("[TCP] Client connected.");
+                    ThreadPool.QueueUserWorkItem(_ => HandleClient(client));
                 }
-                Debug.Log("[TCP] Client connected, waiting for data...");
-                TcpClient client = listener.AcceptTcpClient();
-                ThreadPool.QueueUserWorkItem(_ => HandleClient(client));
+                catch (SocketException se)
+                {
+                    Debug.LogError($"[TCP] Accept failed: {se}");
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogError($"[TCP] Server loop error: {ex}");
+                }
             }
-        }
-        catch (SocketException se)
-        {
-            Debug.LogError($"[TCP] Socket exception: {se}");
         }
         catch (Exception e)
         {
-            Debug.LogError($"[TCP] Server exception: {e}");
+            Debug.LogError($"[TCP] Listener error: {e}");
+        }
+        finally
+        {
+            listener?.Stop();
         }
     }
 
@@ -61,19 +67,34 @@ public class ReceiveVideo : MonoBehaviour
     {
         try
         {
+            client.ReceiveTimeout = 5000; // Optional: kill dead clients
             using (NetworkStream stream = client.GetStream())
             using (BinaryReader reader = new BinaryReader(stream))
             {
-                while (true)
+                while (client.Connected && isRunning)
                 {
-                    int frameLength = IPAddress.NetworkToHostOrder(reader.ReadInt32());
-                    if (frameLength <= 0) break;
-                    byte[] jpegBytes = reader.ReadBytes(frameLength);
-                    if (jpegBytes.Length < frameLength) break;
-                    Debug.Log($"[TCP] Received frame of length {jpegBytes.Length}");
-                    UpdateFrame(jpegBytes);
+                    try
+                    {
+                        int frameLength = IPAddress.NetworkToHostOrder(reader.ReadInt32());
+                        if (frameLength <= 0 || frameLength > 10_000_000) break; // sanity check
+
+                        byte[] jpegBytes = reader.ReadBytes(frameLength);
+                        if (jpegBytes.Length != frameLength) break;
+
+                        Debug.Log($"[TCP] Received frame of length {jpegBytes.Length}");
+                        UpdateFrame(jpegBytes);
+                    }
+                    catch (IOException ioex)
+                    {
+                        Debug.LogWarning($"[TCP] Client disconnected or timed out: {ioex.Message}");
+                        break;
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.LogError($"[TCP] Error while reading: {ex.Message}");
+                        break;
+                    }
                 }
-                Debug.Log("[TCP] Client disconnected or sent invalid data.");
             }
         }
         catch (Exception e)
@@ -82,12 +103,13 @@ public class ReceiveVideo : MonoBehaviour
         }
         finally
         {
+            Debug.Log("[TCP] Cleaning up client connection.");
             client.Close();
         }
     }
+
     void UpdateFrame(byte[] jpegBytes)
     {
-        // Run texture update on the main thread
         UnityMainThreadDispatcher.Enqueue(() =>
         {
             Debug.Log($"[TCP] Rendering {jpegBytes.Length} bytes");
@@ -98,6 +120,7 @@ public class ReceiveVideo : MonoBehaviour
             displayTarget.texture = frameTexture;
         });
     }
+
     void OnApplicationQuit()
     {
         isRunning = false;

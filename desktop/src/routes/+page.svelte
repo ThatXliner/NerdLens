@@ -1,4 +1,6 @@
 <script lang="ts">
+    import ConnectionStatus from "$lib/components/ConnectionStatus.svelte";
+    import NoActiveRec from "$lib/components/NoActiveRec.svelte";
     import { invoke } from "@tauri-apps/api/core";
     import { onMount, onDestroy } from "svelte";
 
@@ -32,7 +34,7 @@
 
     async function connectToServer() {
         try {
-            const result = await invoke("connect_to_server");
+            const result = (await invoke("connect_to_server")) as string;
             isConnected = true;
             status = result;
         } catch (error) {
@@ -144,25 +146,7 @@
 
         <div class="max-w-4xl mx-auto">
             <!-- Status Bar -->
-            <div
-                class="bg-black/30 backdrop-blur-sm rounded-lg p-4 mb-6 border border-white/10"
-            >
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-3">
-                        <div
-                            class="w-3 h-3 rounded-full {isConnected
-                                ? 'bg-green-400'
-                                : 'bg-red-400'} animate-pulse"
-                        ></div>
-                        <span class="text-sm font-medium">
-                            {isConnected ? "Connected" : "Disconnected"}
-                        </span>
-                    </div>
-                    <div class="text-sm text-gray-300">
-                        Status: {status}
-                    </div>
-                </div>
-            </div>
+            <ConnectionStatus {isConnected} {status} />
 
             <!-- Control Panel -->
             <div
@@ -265,29 +249,7 @@
                     ></video>
                     <canvas id="canvas" class="hidden"></canvas>
                     {#if !isRecording}
-                        <div
-                            class="aspect-video flex items-center justify-center text-gray-400"
-                        >
-                            <div class="text-center">
-                                <svg
-                                    class="w-16 h-16 mx-auto mb-4 opacity-50"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-                                    ></path>
-                                </svg>
-                                <p>No active recording</p>
-                                <p class="text-sm">
-                                    Start recording to see preview
-                                </p>
-                            </div>
-                        </div>
+                        <NoActiveRec />
                     {/if}
                 </div>
             </div>

@@ -78,3 +78,4 @@ In the far future:
 Today I set up a primitive mechanism to be able to adjust the camera in VR space. I had to modify the protocol to include a byte in the beginning of each message to notify the server what kind of message it is. Changing the code wasn't too bad to set up this feature.
 
 TODO: Add axis locking (for the camera placement)
+- added logos

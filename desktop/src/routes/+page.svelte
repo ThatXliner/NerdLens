@@ -14,6 +14,7 @@
     let status = "Ready to record";
     let frameCount = 0;
     let fps = 30;
+    let distance = 20;
     let frameInterval = 1000 / fps;
     let lastFrameTime = 0;
 
@@ -230,6 +231,21 @@
                             class="flex-1 max-w-xs"
                         />
                         <span class="text-sm w-8">{fps}</span>
+                        <label class="text-sm font-medium">Distance:</label>
+                        <input
+                            type="range"
+                            min="15"
+                            max="60"
+                            bind:value={distance}
+                            on:input={() => {
+                                invoke("change_settings", {
+                                    settings: JSON.stringify({ distance }),
+                                });
+                            }}
+                            disabled={!isConnected}
+                            class="flex-1 max-w-xs"
+                        />
+                        <span class="text-sm w-8">{distance}</span>
                     </div>
                 </div>
             </div>

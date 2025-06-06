@@ -207,7 +207,7 @@ Transform:
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1, z: -4.47}
+  m_LocalPosition: {x: 0, y: 1, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -650,7 +650,7 @@ Transform:
   m_GameObject: {fileID: 929752442}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.5, y: 0.9, z: 15}
+  m_LocalPosition: {x: 0, y: 0, z: 20}
   m_LocalScale: {x: 16, y: 9, z: 0.1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -671,6 +671,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   port: 12345
   displayTarget: {fileID: 1289789009}
+  cube: {fileID: 929752442}
 --- !u!1 &1289789007
 GameObject:
   m_ObjectHideFlags: 0

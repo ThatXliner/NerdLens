@@ -67,3 +67,14 @@ In the far future:
 
 - Branding + Logo + Packaging
 - Automatic iproxy
+
+
+## 3035-06-05
+
+
+- TODO: I would love a heartbeat mechanism to detect whether the phone is actually connected
+- ~~TODO: I would also need to modify the current protocol~~ DONE!!
+
+Today I set up a primitive mechanism to be able to adjust the camera in VR space. I had to modify the protocol to include a byte in the beginning of each message to notify the server what kind of message it is. Changing the code wasn't too bad to set up this feature.
+
+TODO: Add axis locking (for the camera placement)

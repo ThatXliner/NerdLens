@@ -61,6 +61,58 @@ async fn send_frame(
         let frame_size = frame_bytes.len() as u32;
         let size_bytes = frame_size.to_be_bytes();
 
+        stream
+            .write_u8(1)
+            .await
+            .map_err(|e| format!("Failed to send message type: {}", e))?;
+
+        for attempt in 0..5 {
+            if let Err(_) = stream.write_all(&size_bytes).await {
+                if attempt == 4 {
+                    return Err("Failed to send frame size".to_string());
+                }
+                reconnect!(stream);
+                continue;
+            }
+
+            // Send frame data
+            if let Err(_) = stream.write_all(&frame_bytes).await {
+                if attempt == 4 {
+                    return Err("Failed to send frame data".to_string());
+                }
+                reconnect!(stream);
+                continue;
+            }
+            break;
+        }
+        stream
+            .flush()
+            .await
+            .map_err(|e| format!("Failed to flush stream: {}", e))?;
+
+        Ok("Frame sent successfully".to_string())
+    } else {
+        Err("Not connected to server".to_string())
+    }
+}
+#[tauri::command]
+async fn change_settings(
+    settings: String,
+    state: tauri::State<'_, AppState>,
+) -> Result<String, String> {
+    let mut stream_guard = state.tcp_stream.lock().await;
+
+    if let Some(stream) = stream_guard.as_mut() {
+        // Decode base64 frame data
+        let frame_bytes = settings.as_bytes();
+        // Send frame size as big-endian 32-bit integer
+        let frame_size = settings.chars().count() as u32;
+        let size_bytes = frame_size.to_be_bytes();
+        stream
+            .write_u8(2)
+            .await
+            .map_err(|e| format!("Failed to send message type: {}", e))?;
+
         for attempt in 0..5 {
             if let Err(_) = stream.write_all(&size_bytes).await {
                 if attempt == 4 {
@@ -100,7 +152,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             connect_to_server,
             disconnect_from_server,
-            send_frame
+            send_frame,
+            change_settings
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

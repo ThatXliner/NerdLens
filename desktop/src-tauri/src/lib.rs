@@ -15,6 +15,7 @@ struct FrameData {
 struct AppState {
     tcp_stream: Arc<Mutex<Option<TcpStream>>>,
 }
+const MAX_ATTEMPTS: u32 = 10;
 
 #[tauri::command]
 async fn connect_to_server(state: tauri::State<'_, AppState>) -> Result<String, String> {
@@ -66,22 +67,30 @@ async fn send_frame(
             .await
             .map_err(|e| format!("Failed to send message type: {}", e))?;
 
-        for attempt in 0..5 {
+        for attempt in 0..MAX_ATTEMPTS {
             if let Err(_) = stream.write_all(&size_bytes).await {
-                if attempt == 4 {
+                println!("Failed to send frame size");
+                if attempt == MAX_ATTEMPTS - 1 {
                     return Err("Failed to send frame size".to_string());
                 }
+                println!("Reconnecting (attempt {} of {})", attempt + 1, MAX_ATTEMPTS);
                 reconnect!(stream);
                 continue;
+            } else {
+                //   println!("Frame size sent successfully");
             }
 
             // Send frame data
             if let Err(_) = stream.write_all(&frame_bytes).await {
-                if attempt == 4 {
+                println!("Failed to send frame data");
+                if attempt == MAX_ATTEMPTS - 1 {
                     return Err("Failed to send frame data".to_string());
                 }
+                println!("Reconnecting (attempt {} of {})", attempt + 1, MAX_ATTEMPTS);
                 reconnect!(stream);
                 continue;
+            } else {
+                //    println!("Frame size sent successfully");
             }
             break;
         }
@@ -113,22 +122,30 @@ async fn change_settings(
             .await
             .map_err(|e| format!("Failed to send message type: {}", e))?;
 
-        for attempt in 0..5 {
-            if let Err(_) = stream.write_all(&size_bytes).await {
-                if attempt == 4 {
+        for attempt in 0..MAX_ATTEMPTS {
+            if let Err(message) = stream.write_all(&size_bytes).await {
+                println!("Failed to send frame size: {}", message);
+                if attempt == MAX_ATTEMPTS - 1 {
                     return Err("Failed to send frame size".to_string());
                 }
+                println!("Reconnecting (attempt {} of {})", attempt + 1, MAX_ATTEMPTS);
                 reconnect!(stream);
                 continue;
+            } else {
+                //   println!("Frame size sent successfully");
             }
 
             // Send frame data
             if let Err(_) = stream.write_all(&frame_bytes).await {
-                if attempt == 4 {
+                println!("Failed to send frame data");
+                if attempt == MAX_ATTEMPTS - 1 {
                     return Err("Failed to send frame data".to_string());
                 }
+                println!("Reconnecting (attempt {} of {})", attempt + 1, MAX_ATTEMPTS);
                 reconnect!(stream);
                 continue;
+            } else {
+                //  println!("Frame size sent successfully");
             }
             break;
         }

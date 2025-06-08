@@ -8,10 +8,18 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
+
 [System.Serializable]
 class Settings
 {
-    public float distance;
+    public float distance = 20f;
+    public static byte PITCH = 0b000;
+    public static byte YAW = 0b010;
+    public static byte ROLL = 0b100;
+
+    public byte lockCameraAxes = (byte)(PITCH | YAW | ROLL);
+
+    // private const float smoothingFactor = 0.9f;
     // public int lives;
     // public float health;
 
@@ -36,6 +44,7 @@ public class ReceiveVideo : MonoBehaviour
     public RawImage displayTarget;
     private Texture2D frameTexture = null;
     public GameObject cube;
+    private Settings settings = new Settings();
     void Start()
     {
         Screen.sleepTimeout = SleepTimeout.NeverSleep;
@@ -107,7 +116,7 @@ public class ReceiveVideo : MonoBehaviour
                             byte[] jpegBytes = reader.ReadBytes(frameLength);
                             if (jpegBytes.Length != frameLength) break;
 
-                            Debug.Log($"[TCP] Received frame of length {jpegBytes.Length}");
+                            // Debug.Log($"[TCP] Received frame of length {jpegBytes.Length}");
                             UpdateFrame(jpegBytes);
                         }
                         else if (messageType.Equals(2))
@@ -154,7 +163,7 @@ public class ReceiveVideo : MonoBehaviour
     {
         UnityMainThreadDispatcher.Enqueue(() =>
         {
-            Debug.Log($"[TCP] Rendering {jpegBytes.Length} bytes");
+            // Debug.Log($"[TCP] Rendering {jpegBytes.Length} bytes");
             if (frameTexture == null)
                 frameTexture = new Texture2D(2, 2, TextureFormat.RGB24, false);
 
@@ -165,22 +174,64 @@ public class ReceiveVideo : MonoBehaviour
     // So it still locks in place but it would be cool if it was configurable ig
     void UpdateSettings(Settings settings)
     {
+        this.settings = settings;
+        // XXX: Is UnityMainThreadDispatcher necessary here?
         UnityMainThreadDispatcher.Enqueue(() =>
         {
             // Update your UI or game state with the new settings
             Debug.Log($"Settings updated: Distance = {settings.distance}");
             Vector3 current = cube.transform.position;
-            // Debug.Log($"[TCP] Current cube position: {current}");
             GameObject camera = Camera.main.gameObject;
-            // Debug.Log($"[TCP] Camera located");
-            cube.transform.position = camera.transform.position + camera.transform.forward * settings.distance;
-            // TODO: Lock axis
+            Vector3 newPosition = camera.transform.position + camera.transform.forward * settings.distance;
+            // XXX: likely wrong since these are world coordinates
+            // if ((settings.lockCameraAxes & Settings.PITCH) != 0) // Lock X (pitch)
+            // {
+            //     newPosition.y = current.y;
+            // }
+            // if ((settings.lockCameraAxes & Settings.YAW) != 0) // Lock Y (yaw)
+            // {
+            //     newPosition.x = current.x;
+            // }
+            // if ((settings.lockCameraAxes & Settings.ROLL) != 0) // Lock Z (roll)
+            // {
+            //     newPosition.z = current.z;
+            // }
+            cube.transform.position = newPosition;
+            // Ok so when it comes to rotation locking you cannot mess with
+            // cube.transform.rotation since cube.transform.rotation is relative to the GameObject
+            // (the cube) and not the camera nor the world. What this next line does
+            // is sanely make the cube face the camera, otherwise it would technically be a
+            // set distance away from the camera but not facing it (and thus not letting a perpendicular
+            // straight-on view of the surface of the cube).
             cube.transform.rotation = camera.transform.rotation;
-            // Debug.Log($"[TCP] Modified cube transform");
-            // For example, you could update a TextMeshProUGUI component:
-            // someTextMeshProUGUI.text = $"Distance: {settings.distance}";
+            Debug.Log($"New cube direction: {cube.transform.position.normalized}");
         });
     }
+    // void LateUpdate()
+    // {
+    //     GameObject camera = Camera.main.gameObject;
+    //     Transform cameraTransform = camera.transform;
+    //     Vector3 targetDirection = cameraTransform.position - transform.position;
+    //     Quaternion fullRotation = Quaternion.LookRotation(targetDirection, Vector3.up);
+
+    //     Vector3 euler = fullRotation.eulerAngles;
+
+    //     if ((settings.lockCameraAxes & (1 << 0)) == 0) // Lock X (pitch)
+    //         // The logic here is "if we do not specify that we're locking the X axis, then we allow it to be modified"
+    //         euler.x = transform.rotation.eulerAngles.x;
+
+    //     if ((settings.lockCameraAxes & (1 << 1)) == 0) // Lock Y (yaw)
+    //         euler.y = transform.rotation.eulerAngles.y;
+
+    //     if ((settings.lockCameraAxes & (1 << 2)) == 0) // Lock Z (roll)
+    //         euler.z = transform.rotation.eulerAngles.z;
+
+    //     // ChatGPT says I should smooth interpolate it
+    //     Quaternion desired = Quaternion.Euler(euler);
+    //     // TODO: make adjustable
+    //     const float smoothingFactor = 0.9f; // Adjust this value to control the smoothing effect
+    //     transform.rotation = Quaternion.Slerp(transform.rotation, desired, Time.deltaTime * smoothingFactor);
+    // }
 
     void OnApplicationQuit()
     {

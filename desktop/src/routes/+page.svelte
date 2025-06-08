@@ -107,7 +107,6 @@
                             const base64 = btoa(
                                 String.fromCharCode.apply(null, uint8Array),
                             );
-                            console.log(uint8Array, base64);
 
                             await invoke("send_frame", { frameData: base64 });
                             frameCount++;
@@ -128,6 +127,7 @@
             animationId = requestAnimationFrame(captureFrame);
         }
     }
+    let lockCameraAxes = (1 << 0) | (1 << 1) | (1 << 2);
 </script>
 
 <main
@@ -246,6 +246,119 @@
                             class="flex-1 max-w-xs"
                         />
                         <span class="text-sm w-8">{distance}</span>
+                    </div>
+                </div>
+                <div class="mt-6 pt-6 border-t border-white/20">
+                    <div class="flex items-center space-x-4 justify-end">
+                        <label class="text-sm font-medium">Camera lock:</label>
+                        <div class="flex items-center space-x-2">
+                            <button
+                                type="button"
+                                class="px-3 py-1 rounded-lg font-medium transition-colors flex items-center justify-center text-xs
+                                    hover:bg-blue-400 focus:ring-2 focus:ring-blue-400
+                                    border border-white/20
+                                    data-[checked=true]:bg-blue-700
+                                "
+                                aria-pressed="true"
+                                data-checked="true"
+                                style="outline: none;"
+                                on:click={(event) => {
+                                    event.target.dataset.checked = !(
+                                        event.target.dataset.checked == "true"
+                                    );
+                                    event.target.ariaPressed =
+                                        event.target.dataset.checked;
+                                    lockCameraAxes ^= 1 << 0;
+                                    invoke("change_settings", {
+                                        distance,
+                                        lockCameraAxes,
+                                    });
+                                }}
+                            >
+                                Pitch
+                            </button>
+                            <button
+                                type="button"
+                                class="px-3 py-1 rounded-lg font-medium transition-colors flex items-center justify-center text-xs
+                                    hover:bg-blue-400 focus:ring-2 focus:ring-blue-400
+                                    border border-white/20
+                                    data-[checked=true]:bg-blue-700
+                                "
+                                aria-pressed="true"
+                                data-checked="true"
+                                style="outline: none;"
+                                on:click={(event) => {
+                                    event.target.dataset.checked = !(
+                                        event.target.dataset.checked == "true"
+                                    );
+                                    event.target.ariaPressed =
+                                        event.target.dataset.checked;
+                                    lockCameraAxes ^= 1 << 1;
+                                    invoke("change_settings", {
+                                        distance,
+                                        lockCameraAxes,
+                                    });
+                                }}
+                            >
+                                Yaw
+                            </button>
+                            <button
+                                type="button"
+                                class="px-3 py-1 rounded-lg font-medium transition-colors flex items-center justify-center text-xs
+                                    hover:bg-blue-500 focus:ring-2 focus:ring-blue-400
+                                    border border-white/20
+                                    data-[checked=true]:bg-blue-700
+                                "
+                                aria-pressed="true"
+                                data-checked="true"
+                                style="outline: none;"
+                                on:click={(event) => {
+                                    event.target.dataset.checked = !(
+                                        event.target.dataset.checked == "true"
+                                    );
+                                    event.target.ariaPressed =
+                                        event.target.dataset.checked;
+                                    lockCameraAxes ^= 1 << 2;
+                                    invoke("change_settings", {
+                                        distance,
+                                        lockCameraAxes,
+                                    });
+                                }}
+                            >
+                                Roll
+                            </button>
+                            <button
+                                type="button"
+                                class="px-4 py-2 rounded-md bg-white/10 text-white/70 hover:bg-white/20 transition-colors"
+                                data-checked="false"
+                                aria-pressed="false"
+                                style="outline: none;"
+                                on:click={(event) => {
+                                    event.target.dataset.checked = !(
+                                        event.target.dataset.checked == "true"
+                                    );
+                                    event.target.ariaPressed =
+                                        event.target.dataset.checked;
+                                    if (
+                                        (lockCameraAxes != 1 << 0) |
+                                            (1 << 1) |
+                                            (1 << 2) ||
+                                        lockCameraAxes != 0
+                                    ) {
+                                        lockCameraAxes =
+                                            (1 << 0) | (1 << 1) | (1 << 2);
+                                    } else {
+                                        lockCameraAxes = 0;
+                                    }
+                                    invoke("change_settings", {
+                                        distance,
+                                        lockCameraAxes,
+                                    });
+                                }}
+                            >
+                                All
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

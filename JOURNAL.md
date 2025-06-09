@@ -84,3 +84,8 @@ TODO: Add axis locking (for the camera placement)
 ## 2025-06-08
 
 - Need to fix perms so builds work
+
+## 2025-06-09
+
+- Make video stream actually reliable (by adding reconnects to all the frame sends)
+- Renamed Test0 -> NerdLens (wip, partial change)

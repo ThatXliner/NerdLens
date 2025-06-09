@@ -38,9 +38,11 @@ async fn disconnect_from_server(state: tauri::State<'_, AppState>) -> Result<Str
 macro_rules! reconnect {
     ($stream:ident) => {
         let _ = $stream.shutdown().await;
+        println!("Disconnected");
         *$stream = TcpStream::connect("127.0.0.1:12345")
             .await
             .map_err(|e| format!("Failed to connect to server: {}", e))?;
+        println!("Reconnected");
     };
 }
 
@@ -61,24 +63,26 @@ async fn send_frame(
         let frame_size = frame_bytes.len() as u32;
         let size_bytes = frame_size.to_be_bytes();
 
-        stream
-            .write_u8(1)
-            .await
-            .map_err(|e| format!("Failed to send message type: {}", e))?;
-
         for attempt in 0..5 {
-            if let Err(_) = stream.write_all(&size_bytes).await {
+            if let Err(error) = stream.write_u8(1).await {
                 if attempt == 4 {
-                    return Err("Failed to send frame size".to_string());
+                    return Err(format!("Failed to send message type: {}", error));
+                }
+                reconnect!(stream);
+                continue;
+            }
+            if let Err(error) = stream.write_all(&size_bytes).await {
+                if attempt == 4 {
+                    return Err(format!("Failed to send frame size: {}", error));
                 }
                 reconnect!(stream);
                 continue;
             }
 
             // Send frame data
-            if let Err(_) = stream.write_all(&frame_bytes).await {
+            if let Err(error) = stream.write_all(&frame_bytes).await {
                 if attempt == 4 {
-                    return Err("Failed to send frame data".to_string());
+                    return Err(format!("Failed to send frame data: {}", error));
                 }
                 reconnect!(stream);
                 continue;
@@ -108,24 +112,27 @@ async fn change_settings(
         // Send frame size as big-endian 32-bit integer
         let frame_size = settings.chars().count() as u32;
         let size_bytes = frame_size.to_be_bytes();
-        stream
-            .write_u8(2)
-            .await
-            .map_err(|e| format!("Failed to send message type: {}", e))?;
 
         for attempt in 0..5 {
-            if let Err(_) = stream.write_all(&size_bytes).await {
+            if let Err(error) = stream.write_u8(2).await {
                 if attempt == 4 {
-                    return Err("Failed to send frame size".to_string());
+                    return Err(format!("Failed to send message type: {}", error));
+                }
+                reconnect!(stream);
+                continue;
+            }
+            if let Err(error) = stream.write_all(&size_bytes).await {
+                if attempt == 4 {
+                    return Err(format!("Failed to send frame size: {}", error));
                 }
                 reconnect!(stream);
                 continue;
             }
 
             // Send frame data
-            if let Err(_) = stream.write_all(&frame_bytes).await {
+            if let Err(error) = stream.write_all(&frame_bytes).await {
                 if attempt == 4 {
-                    return Err("Failed to send frame data".to_string());
+                    return Err(format!("Failed to send frame data: {}", error));
                 }
                 reconnect!(stream);
                 continue;

@@ -39,9 +39,11 @@ async fn disconnect_from_server(state: tauri::State<'_, AppState>) -> Result<Str
 macro_rules! reconnect {
     ($stream:ident) => {
         let _ = $stream.shutdown().await;
+        println!("Disconnected from server");
         *$stream = TcpStream::connect("127.0.0.1:12345")
             .await
             .map_err(|e| format!("Failed to connect to server: {}", e))?;
+        println!("Reconnected to server");
     };
 }
 

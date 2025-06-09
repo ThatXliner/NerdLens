@@ -69,7 +69,7 @@ In the far future:
 - Automatic iproxy
 
 
-## 3035-06-05
+## 2025-06-05
 
 
 - TODO: I would love a heartbeat mechanism to detect whether the phone is actually connected
@@ -79,3 +79,8 @@ Today I set up a primitive mechanism to be able to adjust the camera in VR space
 
 TODO: Add axis locking (for the camera placement)
 - added logos
+
+
+## 2025-06-08
+
+- Need to fix perms so builds work

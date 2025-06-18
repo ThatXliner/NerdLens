@@ -45,6 +45,17 @@ macro_rules! reconnect {
         println!("Reconnected");
     };
 }
+macro_rules! write_to {
+    ($stream:ident, $type: ident, $data:expr, $error:expr) => {
+        if let Err(error) = $stream.write_$type($data).await {
+            if attempt == 4 {
+                return Err(format!($error, error));
+            }
+            reconnect!($stream);
+            continue;
+        }
+    };
+}
 
 #[tauri::command]
 async fn send_frame(

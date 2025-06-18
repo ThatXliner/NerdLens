@@ -58,8 +58,8 @@
             mediaStream = await navigator.mediaDevices.getDisplayMedia({
                 video: {
                     mediaSource: "screen",
-                    width: 1920,
-                    height: 1080,
+                    width: 3456,
+                    height: 2234,
                     frameRate: fps,
                 },
                 audio: false,

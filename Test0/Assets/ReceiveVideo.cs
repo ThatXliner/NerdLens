@@ -160,6 +160,7 @@ public class ReceiveVideo : MonoBehaviour
 
             frameTexture.LoadImage(jpegBytes);
             displayTarget.texture = frameTexture;
+            displayTarget.SetNativeSize(); // sets width/height based on texture
         });
     }
     // So it still locks in place but it would be cool if it was configurable ig

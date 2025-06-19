@@ -51,6 +51,7 @@
         } catch (error) {
             status = `Disconnect failed: ${error}`;
         }
+        // await stopRecording();
     }
 
     async function startRecording() {

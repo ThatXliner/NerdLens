@@ -89,3 +89,7 @@ TODO: Add axis locking (for the camera placement)
 
 - Make video stream actually reliable (by adding reconnects to all the frame sends)
 - Renamed Test0 -> NerdLens (wip, partial change)
+
+## 2025-06-19
+
+- Fixed video dimensions

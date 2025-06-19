@@ -182,20 +182,7 @@ public class ReceiveVideo : MonoBehaviour
             Debug.Log($"Settings updated: Distance = {settings.distance}");
             Vector3 current = cube.transform.position;
             GameObject camera = Camera.main.gameObject;
-            Vector3 newPosition = camera.transform.position + camera.transform.forward * settings.distance;
-            // XXX: likely wrong since these are world coordinates
-            // if ((settings.lockCameraAxes & Settings.PITCH) != 0) // Lock X (pitch)
-            // {
-            //     newPosition.y = current.y;
-            // }
-            // if ((settings.lockCameraAxes & Settings.YAW) != 0) // Lock Y (yaw)
-            // {
-            //     newPosition.x = current.x;
-            // }
-            // if ((settings.lockCameraAxes & Settings.ROLL) != 0) // Lock Z (roll)
-            // {
-            //     newPosition.z = current.z;
-            // }
+            Vector3 newPosition = camera.transform.position + Vector3.ProjectOnPlane(camera.transform.forward, new Vector3(0, 1, 0)).normalized * settings.distance;
             cube.transform.position = newPosition;
             // Ok so when it comes to rotation locking you cannot mess with
             // cube.transform.rotation since cube.transform.rotation is relative to the GameObject

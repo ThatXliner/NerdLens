@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#090713" />
+    <meta name="theme-color" content="#0b0914" />
     <meta
       name="description"
       content="NerdLens puts your computer screen in a Google Cardboard headset using an iPhone and a wired USB connection."
@@ -38,8 +38,6 @@
     <title>NerdLens — Your screen. In VR.</title>
   </head>
   <body>
-    <div class="noise" aria-hidden="true"></div>
-
     <header class="site-header">
       <a class="brand" href="#top" aria-label="NerdLens home">
         <img src="./logo.png" alt="" />
@@ -54,261 +52,197 @@
           target="_blank"
           rel="noreferrer"
         >
-          GitHub
-          <span aria-hidden="true">↗</span>
+          GitHub <span aria-hidden="true">↗</span>
         </a>
       </nav>
     </header>
 
     <main id="top">
       <section class="hero">
-        <div class="hero-glow" aria-hidden="true"></div>
-        <div class="hero-copy reveal">
-          <div class="eyebrow">
-            <span class="pulse"></span>
-            Open-source VR desktop experiment
-          </div>
-          <h1>
-            Your screen.
-            <span>In VR.</span>
-          </h1>
+        <div class="hero-copy">
+          <p class="eyebrow">Open-source VR desktop experiment</p>
+          <h1>Your screen.<br /><span>In VR.</span></h1>
           <p class="hero-lede">
             Turn an iPhone and a cardboard viewer into a wired virtual display.
-            No expensive headset. No cloud. Just USB and an unreasonable amount
-            of curiosity.
+            No expensive headset. No cloud. Just USB.
           </p>
-          <div class="hero-actions">
-            <a class="button button-primary" href="#build-it">
-              Build NerdLens
-              <span aria-hidden="true">↓</span>
-            </a>
+          <div class="actions">
+            <a class="button button-primary" href="#build-it">Build NerdLens</a>
             <a
-              class="button button-ghost"
+              class="button button-secondary"
               href="https://github.com/ThatXliner/NerdLens"
               target="_blank"
               rel="noreferrer"
             >
               View source
-              <span aria-hidden="true">↗</span>
             </a>
           </div>
-          <ul class="hero-facts" aria-label="NerdLens highlights">
-            <li><strong>10–60</strong><span>target FPS</span></li>
-            <li><strong>USB</strong><span>wired first</span></li>
-            <li><strong>GPL-3.0</strong><span>open source</span></li>
+        </div>
+
+        <div class="hero-product" aria-label="NerdLens virtual display preview">
+          <div class="product-bar">
+            <span>NerdLens host</span>
+            <span class="connection"><i></i> Connected</span>
+          </div>
+          <div class="product-screen">
+            <img src="./logo.png" alt="NerdLens orange VR glasses" />
+            <div>
+              <span>Display 01</span>
+              <strong>Desktop ready</strong>
+              <small>Streaming locally over USB</small>
+            </div>
+          </div>
+          <div class="product-footer">
+            <span>30 FPS</span>
+            <span>localhost:12345</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="intro">
+        <p>
+          A virtual monitor should not require another mortgage. NerdLens
+          explores the scrappy version: hardware you already have, a cable you
+          already own, and a stack you can take apart.
+        </p>
+      </section>
+
+      <section class="section" id="how-it-works">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">How it works</p>
+            <h2>Four simple hops.</h2>
+          </div>
+          <p>
+            The system stays deliberately legible. There is no black-box
+            streaming service in the middle.
+          </p>
+        </div>
+
+        <ol class="steps">
+          <li>
+            <span>01</span>
+            <h3>Capture</h3>
+            <p>The desktop app grabs the display or window you choose.</p>
+            <code>getDisplayMedia()</code>
+          </li>
+          <li>
+            <span>02</span>
+            <h3>Compress</h3>
+            <p>The Tauri host turns each frame into a JPEG payload.</p>
+            <code>image/jpeg · 0.8</code>
+          </li>
+          <li>
+            <span>03</span>
+            <h3>Tunnel</h3>
+            <p>A small TCP protocol travels through USB to the phone.</p>
+            <code>iproxy :12345</code>
+          </li>
+          <li>
+            <span>04</span>
+            <h3>Render</h3>
+            <p>Unity paints the latest frame onto a display in Cardboard VR.</p>
+            <code>Texture2D.LoadImage</code>
+          </li>
+        </ol>
+      </section>
+
+      <section class="control-section section">
+        <div class="control-copy">
+          <p class="eyebrow">Useful controls, no cockpit</p>
+          <h2>Put the display where it feels right.</h2>
+          <p>
+            Preview the stream, check the connection, choose a target frame
+            rate, and move the screen deeper into your virtual space.
+          </p>
+          <ul>
+            <li>Live stream preview</li>
+            <li>Adjustable display distance</li>
+            <li>Automatic reconnect attempts</li>
           </ul>
         </div>
 
-        <div class="hero-visual reveal" aria-label="NerdLens virtual display">
-          <div class="orbit orbit-one" aria-hidden="true"></div>
-          <div class="orbit orbit-two" aria-hidden="true"></div>
-          <div class="screen-shell" data-tilt>
-            <div class="screen-bar">
-              <div class="traffic-lights" aria-hidden="true">
-                <span></span><span></span><span></span>
-              </div>
-              <span class="screen-label">NERDLENS // LIVE</span>
-              <span class="screen-fps">30 FPS</span>
-            </div>
-            <div class="screen-content">
-              <div class="screen-grid" aria-hidden="true"></div>
-              <div class="screen-copy">
-                <span>DISPLAY 01</span>
-                <strong>YOUR DESKTOP<br />ESCAPED.</strong>
-              </div>
-              <div class="screen-status">
-                <span class="pulse"></span>
-                STREAMING OVER USB
-              </div>
-            </div>
+        <div class="control-panel" aria-label="Example NerdLens controls">
+          <div class="panel-header">
+            <span>Display controls</span>
+            <span class="connection"><i></i> Connected</span>
           </div>
-          <img
-            class="hero-logo"
-            src="./logo.png"
-            alt="NerdLens orange VR glasses"
-          />
-          <span class="visual-note note-one">JPEG // TCP</span>
-          <span class="visual-note note-two">:12345</span>
-        </div>
-
-        <div class="scroll-cue" aria-hidden="true">
-          <span>Scroll to enter</span>
-          <i></i>
-        </div>
-      </section>
-
-      <section class="manifesto section-pad">
-        <div class="section-kicker reveal">The pitch</div>
-        <p class="manifesto-copy reveal">
-          A virtual monitor should not require
-          <span>another mortgage.</span> NerdLens explores the scrappy version:
-          hardware you already have, a cable you already own, and a stack you
-          can take apart.
-        </p>
-        <div class="marquee" aria-hidden="true">
-          <div>
-            WIRED, NOT WEIRD&nbsp;&nbsp;✦&nbsp;&nbsp; PHONE TO
-            PORTAL&nbsp;&nbsp;✦&nbsp;&nbsp; YOUR PIXELS, YOUR
-            PROTOCOL&nbsp;&nbsp;✦&nbsp;&nbsp; WIRED, NOT
-            WEIRD&nbsp;&nbsp;✦&nbsp;&nbsp; PHONE TO
-            PORTAL&nbsp;&nbsp;✦&nbsp;&nbsp; YOUR PIXELS, YOUR PROTOCOL
-          </div>
-        </div>
-      </section>
-
-      <section class="signal section-pad" id="how-it-works">
-        <div class="section-heading reveal">
-          <div>
-            <div class="section-kicker">Under the hood</div>
-            <h2>One screen.<br />Four hops.</h2>
-          </div>
-          <p>
-            The whole system is deliberately legible. Capture it, compress it,
-            tunnel it, render it. No black-box streaming service in the middle.
-          </p>
-        </div>
-
-        <div class="signal-grid">
-          <article class="signal-card reveal">
-            <span class="card-number">01</span>
-            <div class="card-icon" aria-hidden="true">⌁</div>
-            <h3>Capture</h3>
-            <p>The Svelte desktop UI grabs the display or window you choose.</p>
-            <code>getDisplayMedia()</code>
-          </article>
-          <article class="signal-card reveal">
-            <span class="card-number">02</span>
-            <div class="card-icon" aria-hidden="true">▧</div>
-            <h3>Compress</h3>
-            <p>Frames become straightforward JPEG payloads in the Tauri host.</p>
-            <code>image/jpeg · 0.8</code>
-          </article>
-          <article class="signal-card reveal">
-            <span class="card-number">03</span>
-            <div class="card-icon" aria-hidden="true">⇢</div>
-            <h3>Tunnel</h3>
-            <p>A tiny TCP protocol rides a local USB tunnel to the phone.</p>
-            <code>iproxy :12345</code>
-          </article>
-          <article class="signal-card reveal">
-            <span class="card-number">04</span>
-            <div class="card-icon" aria-hidden="true">◉</div>
-            <h3>Render</h3>
-            <p>Unity paints each frame onto a display inside Cardboard VR.</p>
-            <code>Texture2D.LoadImage</code>
-          </article>
-        </div>
-      </section>
-
-      <section class="control section-pad">
-        <div class="control-stage reveal">
-          <div class="control-copy">
-            <div class="section-kicker">Dial it in</div>
-            <h2>Your viewport,<br />your rules.</h2>
-            <p>
-              Preview the stream, watch the connection, choose a target frame
-              rate, and push the display deeper into your virtual space—all
-              from the desktop host.
-            </p>
-            <div class="feature-pills">
+          <div class="panel-preview">
+            <div>
               <span>Live preview</span>
-              <span>Distance control</span>
-              <span>Reconnect attempts</span>
+              <strong>Your desktop</strong>
             </div>
           </div>
-
-          <div class="control-panel" aria-label="Example NerdLens controls">
-            <div class="panel-top">
-              <span>STREAM CONTROL</span>
-              <span class="connected"><i></i> CONNECTED</span>
+          <div class="panel-slider">
+            <div>
+              <label for="distance">Display distance</label>
+              <output id="distance-value" for="distance">38</output>
             </div>
-            <div class="panel-preview">
-              <div class="preview-window">
-                <span class="preview-label">LIVE FEED</span>
-                <div class="preview-landscape">
-                  <i></i><i></i><i></i>
-                </div>
-              </div>
-            </div>
-            <div class="panel-control">
-              <div class="control-label">
-                <span>DISPLAY DISTANCE</span>
-                <strong id="distance-value">38</strong>
-              </div>
-              <input
-                id="distance"
-                type="range"
-                min="15"
-                max="60"
-                value="38"
-                aria-label="Example display distance"
-              />
-            </div>
-            <div class="panel-stats">
-              <div><strong>1,842</strong><span>frames sent</span></div>
-              <div><strong>30</strong><span>target FPS</span></div>
-              <div><strong>3456×2234</strong><span>resolution</span></div>
-            </div>
+            <input
+              id="distance"
+              type="range"
+              min="15"
+              max="60"
+              value="38"
+            />
+          </div>
+          <div class="panel-stats">
+            <span><strong>30</strong> target FPS</span>
+            <span><strong>1,842</strong> frames sent</span>
           </div>
         </div>
       </section>
 
-      <section class="build section-pad" id="build-it">
-        <div class="build-copy reveal">
-          <div class="section-kicker">Source-build friendly</div>
+      <section class="build section" id="build-it">
+        <div class="build-copy">
+          <p class="eyebrow">Build it yourself</p>
           <h2>Three moves.<br />Then headset.</h2>
           <p>
-            NerdLens is a proof of concept, so setup is still a hands-on affair.
-            Bring an iPhone, Google Cardboard, Unity 6, and a Mac with Xcode.
+            NerdLens is a proof of concept, so setup is hands-on. Bring an
+            iPhone, Google Cardboard, Unity 6, and a Mac with Xcode.
           </p>
           <a
-            class="text-link"
+            class="inline-link"
             href="https://github.com/ThatXliner/NerdLens#quick-start"
             target="_blank"
             rel="noreferrer"
           >
-            Read the full setup guide
-            <span aria-hidden="true">↗</span>
+            Read the complete setup guide <span aria-hidden="true">↗</span>
           </a>
         </div>
 
-        <div class="terminal reveal">
-          <div class="terminal-bar">
-            <div class="traffic-lights" aria-hidden="true">
-              <span></span><span></span><span></span>
-            </div>
-            <span>nerdlens — zsh</span>
-            <button class="copy-command" type="button" data-copy aria-label="Copy setup commands">
-              COPY
+        <div class="terminal">
+          <div class="terminal-header">
+            <span>Quick start</span>
+            <button
+              class="copy-command"
+              type="button"
+              data-copy
+              aria-label="Copy setup commands"
+            >
+              Copy
             </button>
           </div>
-          <pre><code><span class="terminal-comment"># 01 — clone it</span>
-<span class="terminal-prompt">$</span> git clone https://github.com/ThatXliner/NerdLens.git
+          <pre><code><span># Clone</span>
+$ git clone https://github.com/ThatXliner/NerdLens.git
 
-<span class="terminal-comment"># 02 — tunnel it</span>
-<span class="terminal-prompt">$</span> iproxy 12345 12345
+<span># Tunnel</span>
+$ iproxy 12345 12345
 
-<span class="terminal-comment"># 03 — launch it</span>
-<span class="terminal-prompt">$</span> cd NerdLens/desktop
-<span class="terminal-prompt">$</span> bun install --frozen-lockfile
-<span class="terminal-prompt">$</span> bun run tauri dev</code></pre>
-          <div class="terminal-footer">
-            <span><i></i> READY TO GET WEIRD</span>
-            <span>GPL-3.0</span>
-          </div>
+<span># Launch</span>
+$ cd NerdLens/desktop
+$ bun install --frozen-lockfile
+$ bun run tauri dev</code></pre>
         </div>
       </section>
 
       <section class="final-cta">
-        <div class="final-orbit" aria-hidden="true"></div>
         <img src="./logo.png" alt="" />
-        <div class="section-kicker reveal">The screen is not the limit</div>
-        <h2 class="reveal">Strap in.<br /><span>Ship pixels.</span></h2>
-        <p class="reveal">
-          NerdLens is early, open, and asking to be made delightfully
-          overengineered.
+        <h2>Ready to look closer?</h2>
+        <p>
+          NerdLens is early, open, and ready for curious people to take apart.
         </p>
-        <div class="hero-actions reveal">
+        <div class="actions">
           <a
             class="button button-primary"
             href="https://github.com/ThatXliner/NerdLens"
@@ -316,15 +250,14 @@
             rel="noreferrer"
           >
             Explore on GitHub
-            <span aria-hidden="true">↗</span>
           </a>
           <a
-            class="button button-ghost"
+            class="button button-secondary"
             href="https://github.com/ThatXliner/NerdLens/issues"
             target="_blank"
             rel="noreferrer"
           >
-            Bring an idea
+            Share an idea
           </a>
         </div>
       </section>
@@ -341,7 +274,6 @@
         <a href="https://github.com/ThatXliner/NerdLens/blob/main/LICENSE"
           >GPL-3.0</a
         >
-        <a href="#top">Back to top ↑</a>
       </div>
     </footer>
 

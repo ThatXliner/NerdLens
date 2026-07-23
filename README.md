@@ -11,6 +11,7 @@
 </p>
 
 <p align="center">
+  <a href="https://bryanhu.com/NerdLens/"><img alt="Visit the NerdLens website" src="https://img.shields.io/badge/visit-nerdlens%20website-f47a3c.svg" /></a>
   <a href="https://github.com/ThatXliner/NerdLens/blob/main/LICENSE"><img alt="License: GPL-3.0" src="https://img.shields.io/badge/license-GPL--3.0-7c3aed.svg" /></a>
   <img alt="Unity 6" src="https://img.shields.io/badge/Unity-6000.1-111827?logo=unity" />
   <img alt="Tauri 2" src="https://img.shields.io/badge/Tauri-2-24C8DB?logo=tauri&logoColor=white" />

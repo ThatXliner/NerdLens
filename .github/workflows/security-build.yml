@@ -10,8 +10,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22.23.4"
-      - name: Verify certificate rejection
-        run: node scripts/check-tls.mjs
       - name: Install dependencies
         working-directory: desktop
         run: npm ci

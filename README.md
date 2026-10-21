@@ -61,7 +61,7 @@ The phone runs the TCP server; the desktop host connects to `localhost:12345`, w
 - A Google Cardboard-compatible viewer
 - A USB cable
 - [Unity Hub](https://unity.com/download) with Unity `6000.1.5f1` and iOS Build Support
-- [Bun](https://bun.sh/), [Rust](https://rustup.rs/), and the Tauri system prerequisites
+- Node.js 22.23.4 or later in the 22.x line with npm, [Rust](https://rustup.rs/), and the Tauri system prerequisites
 - `iproxy` from [`libimobiledevice`](https://libimobiledevice.org/)
 
 Install `iproxy` with Homebrew:
@@ -101,8 +101,8 @@ Keep this process running for the entire session.
 
 ```bash
 cd desktop
-bun install --frozen-lockfile
-bun run tauri dev
+npm ci
+npm run tauri dev
 ```
 
 In NerdLens:
@@ -120,16 +120,16 @@ Run these commands from `desktop/`:
 
 ```bash
 # Start the Svelte frontend only
-bun run dev
+npm run dev
 
 # Type-check the frontend
-bun run check
+npm run check
 
 # Build the frontend
-bun run build
+npm run build
 
 # Run the complete desktop app
-bun run tauri dev
+npm run tauri dev
 
 # Validate the Rust host
 cargo check --manifest-path src-tauri/Cargo.toml
@@ -193,3 +193,13 @@ Bug reports, experiments, protocol improvements, and delightfully overengineered
 ## License
 
 NerdLens is free software released under the [GNU General Public License v3.0](./LICENSE).
+
+## TLS runtime requirements
+
+Build and install with Node.js `^22.23.4 || ^24.22.1 || >=26.12.1`. The `.nvmrc` pins 22.23.4. Older Node releases are unsupported following the [eMudhra intermediate CA compromise](https://emudhra.we-have-a-problem.com/). Use the committed lockfile with `npm ci`. Bun is not a supported installer while its certificate fix is pending.
+
+This floor covers JavaScript build tools and package downloads. Browser and Tauri webview HTTPS requests use the browser or operating system verifier, so keep those updated too.
+
+Run `node scripts/check-tls.mjs` to verify both compromised test chains are rejected and `https://example.com/` still succeeds. Timeouts and DNS errors fail this check.
+
+The npm configuration preserves the previous Bun lockfile versions with `legacy-peer-deps=true`.

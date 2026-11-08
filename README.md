@@ -194,12 +194,8 @@ Bug reports, experiments, protocol improvements, and delightfully overengineered
 
 NerdLens is free software released under the [GNU General Public License v3.0](./LICENSE).
 
-## TLS runtime requirements
+## Runtime requirements
 
-Build and install with Node.js `^22.23.4 || ^24.22.1 || >=26.12.1`. The `.nvmrc` pins 22.23.4. Older Node releases are unsupported following the [eMudhra intermediate CA compromise](https://emudhra.we-have-a-problem.com/). Use the committed lockfile with `npm ci`. Bun is not a supported installer while its certificate fix is pending.
-
-This floor covers JavaScript build tools and package downloads. Browser and Tauri webview HTTPS requests use the browser or operating system verifier, so keep those updated too.
-
-Run `node scripts/check-tls.mjs` to verify both compromised test chains are rejected and `https://example.com/` still succeeds. Timeouts and DNS errors fail this check.
+Build and install with Node.js `^22.23.4 || ^24.22.1 || >=26.12.1`. The `.nvmrc` pins 22.23.4. Use the committed lockfile with `npm ci`.
 
 The npm configuration preserves the previous Bun lockfile versions with `legacy-peer-deps=true`.
